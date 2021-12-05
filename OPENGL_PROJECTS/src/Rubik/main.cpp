@@ -26,7 +26,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
 void manual() {
-    std::cout << "Teclas\n";
+    std::cout << "COMANDOS PARA MOVER EL CUBO\n";
     std::cout << "PAD 0: Cara Frontal (front) sentido horario\n";
     std::cout << "PAD 1: Cara Frontal (front) sentido antihorario\n";
     std::cout << "PAD 2: Cara Derecha (right) sentido horario\n";
@@ -40,6 +40,15 @@ void manual() {
     std::cout << "PAD +: Cara Abajo (down) sentido horario\n";
     std::cout << "PAD -: Cara Abajo (down) sentido antihorario\n";
     std::cout << "SPACE: RESOLVER CUBO\n";
+
+    std::cout << "COMANDOS PARA LAS ANIMACIONES\n";
+    std::cout << "B/b: Respiración (Breathe) constante\n";
+    std::cout << "V/v: Detener respiración (Static)\n";
+
+    std::cout << "COMANDOS PARA LAS PROYECCIONES\n";
+    std::cout << "O: Proyeccion ortogonal\n";
+    std::cout << "P: Proyeccion en perspectiva\n";
+    
     std::cout << "Esc: Salir del programa\n";
 }
 
@@ -61,6 +70,9 @@ float lastFrame = 0.0f;
 
 // rubik cube
 RubikCube3x3::STATE_ANIMATION animation_state = RubikCube3x3::STATE_ANIMATION::NONE;
+RubikCube3x3::FLUENT_ANIMATION fluent_animation = RubikCube3x3::FLUENT_ANIMATION::BREATHE;
+enum class PROYECTION_TYPE { PERSPECTIVE, ORTHOGONAL };
+PROYECTION_TYPE proy_type = PROYECTION_TYPE::PERSPECTIVE;
 
 int main()
 {
@@ -107,6 +119,66 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
+    Shader LightProgram("vertexShaderLight.glsl", "fragmentShaderLight.glsl");
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+// ------------------------------------------------------------------
+    GLfloat sun_vertices[] = {
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+
+        -0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f, -0.5f,
+         0.5f, -0.5f,  0.5f,
+         0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f,
+
+        -0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f, -0.5f,
+         0.5f,  0.5f,  0.5f,
+         0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f,
+        -0.5f,  0.5f, -0.5f,
+    };
+
+    // LIGHT VAO
+    GLuint lightVAO, lightVBO;
+    glGenVertexArrays(1, &lightVAO);
+    glGenBuffers(1, &lightVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, lightVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sun_vertices), sun_vertices, GL_STATIC_DRAW);
+    glBindVertexArray(lightVAO);
+    // configurar los atributos de los vertices
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+
+
     // build and compile our shader zprogram
     // ------------------------------------
     GLuint VBO[1], VAO[1], EBO[1];
@@ -130,14 +202,15 @@ int main()
     glEnableVertexAttribArray(1);
     // wire mode color attribute
 
-    RubikCube3x3 rubik("vertexShader.glsl", "fragmentShader.glsl", "steelTexture.jpg");
+
+    Shader program("vertexShader.glsl", "fragmentShader.glsl");
+    std::vector<std::string> myTextures = { "fluidColouredTexture.jpg" , "pandaTexture.jpg" };
+    RubikCube3x3 rubik(program, myTextures);
     //asociamos el VAO correspondiente
     rubik.AssociateVAO(VAO[0]);
-    
-    solver::Rubik myrubik;
-    
-    manual();
 
+    manual();
+    
     glLineWidth(10.0f);
     // render loop
     // -----------
@@ -158,14 +231,32 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Primero configuramos el color de la luz para el cubo
+        program.use();
+        program.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix(); // make sure to initialize matrix to identity matrix first
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        
+        if(proy_type == PROYECTION_TYPE::ORTHOGONAL)
+            projection = glm::ortho(-4.0f, 4.0f, -3.0f, 3.0f, 0.1f, 100.0f);
+
         // dibujamos el cubo de rubik
         if (animation_state == RubikCube3x3::STATE_ANIMATION::SOLVE) rubik.Solve(animation_state);
-        rubik.HandleDrawing(view, projection, animation_state);
+        rubik.HandleDrawing(view, projection, animation_state, fluent_animation);
+
+        // Ahora configuramos las matrices para la luz
+        LightProgram.use();
+        LightProgram.setMat4("view", view);
+        LightProgram.setMat4("projection", projection);
+        glm::mat4 lightmodel(1.0f);
+        glm::vec3 lightPos(3.0f, 3.0f, 0.0f);
+        lightmodel = glm::translate(lightmodel, lightPos);
+        lightmodel = glm::scale(lightmodel, glm::vec3(0.2f)); // un cubo pequeño
+        LightProgram.setMat4("model", lightmodel);
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -176,7 +267,9 @@ int main()
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, VAO);
+    glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, VBO);
+    glDeleteBuffers(1, &lightVBO);
     glDeleteBuffers(1, EBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -201,7 +294,6 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
-
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -230,10 +322,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             animation_state = RubikCube3x3::STATE_ANIMATION::D;
         if (key == GLFW_KEY_KP_SUBTRACT && action == GLFW_PRESS)
             animation_state = RubikCube3x3::STATE_ANIMATION::d;
-        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
             animation_state = RubikCube3x3::STATE_ANIMATION::SOLVE;
-        }
     }
+
+    if (key == GLFW_KEY_O && action == GLFW_PRESS)
+        proy_type = PROYECTION_TYPE::ORTHOGONAL;
+    if (key == GLFW_KEY_P && action == GLFW_PRESS)
+        proy_type = PROYECTION_TYPE::PERSPECTIVE;
+
+    // animacion continuas
+    if (key == GLFW_KEY_B && action == GLFW_PRESS)
+        fluent_animation = RubikCube3x3::FLUENT_ANIMATION::BREATHE;
+    if (key == GLFW_KEY_V && action == GLFW_PRESS)
+        fluent_animation = RubikCube3x3::FLUENT_ANIMATION::STATIC;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -244,8 +346,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
-
-
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {

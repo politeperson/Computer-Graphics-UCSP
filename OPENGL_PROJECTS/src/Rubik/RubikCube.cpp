@@ -9,23 +9,24 @@ void Cube::chooseColor(const Shader& program, GLint i)
 		program.setVec3("changingColor", 1.0f, 1.0f, 1.0f);
 		break;
 	case 'O': // orange color
-		program.setVec3("changingColor", 0.972f, 0.470f, 0.227f);
+		program.setVec3("changingColor", 0.945f, 0.372f, 0.054f);
 		break;
 	case 'G': // green color
-		program.setVec3("changingColor", 0.0f, 1.0f, 0.0f);
+		program.setVec3("changingColor", 0.227, 0.984, 0.035);
 		break;
 	case 'R': // red color
 		program.setVec3("changingColor", 1.0f, 0.0f, 0.0f);
 		break;
 	case 'B': // blue color
-		program.setVec3("changingColor", 0.0f, 0.0f, 1.0f);
+		program.setVec3("changingColor", 0.043f, 0.121f, 0.737f);
 		break;
 	case 'Y': // yellow color
-		program.setVec3("changingColor", 1.0f, 1.0f, 0.0f);
+		program.setVec3("changingColor", 0.933f, 0.952f, 0.086f);
 		break;
 	default: // black color by default
 		program.setBool("fill", false); // no hay fill
 		program.setVec3("changingColor", 0.0f, 0.0f, 0.0f);
+		program.setBool("fill", true); // fill de nuevo a true
 		break;
 	}
 }
@@ -47,12 +48,8 @@ Cube::Cube(const Cube& another_cube)
 {
 	pos = another_cube.pos;
 	model = another_cube.model;
-	colors[0] = 'W'; // UP - White
-	colors[1] = 'O'; // LEFT - Orange
-	colors[2] = 'G'; // FRONT - Green
-	colors[3] = 'R'; // RIGHT - Red
-	colors[4] = 'B'; // BACK - Blue
-	colors[5] = 'Y'; // DOWN - Yellow
+	for(int i = 0; i < NFACES; ++i)
+		colors[i] = another_cube.colors[i];
 }
 
 Cube::Cube(glm::mat4 model_, glm::vec3 pos_)
@@ -65,11 +62,6 @@ Cube::Cube(glm::mat4 model_, glm::vec3 pos_)
 	colors[3] = 'R'; // RIGHT - Red
 	colors[4] = 'B'; // BACK - Blue
 	colors[5] = 'Y'; // DOWN - Yellow
-}
-
-void Cube::setColor(GLint i, char c)
-{
-	colors[i] = c;
 }
 
 void Cube::draw(const Shader& program)
@@ -127,79 +119,16 @@ void Cube::draw(const Shader& program)
 
 Cube::~Cube() {}
 
-// RUBIK CUBE CLASS
-RubikCube3x3::RubikCube3x3(const char* vertexPath, const char* fragmentPath, const char* texPath)
-{
-	// no estamos resolviendo nada al inicio
-	RVAO = 0; // valor por defecto del VAO
-	program.ConfShaders(vertexPath, fragmentPath);
-
-	// seting the Textures paths
-	texturePath = texPath;
-	// cargando las texturas y configurando las unit textures
-	confTexture(textureID, texturePath);
-	program.setInt("materialTexture", 0);
-
-
-	// primer nivel
-	cubes[0].pos = glm::vec3(-1, 1, -1);
-	cubes[1].pos = glm::vec3(0, 1, -1);
-	cubes[2].pos = glm::vec3(1, 1, -1);
-	cubes[3].pos = glm::vec3(-1, 1, 0);
-	cubes[4].pos = glm::vec3(0, 1, 0);
-	cubes[5].pos = glm::vec3(1, 1, 0);
-	cubes[6].pos = glm::vec3(-1, 1, 1);
-	cubes[7].pos = glm::vec3(0, 1, 1);
-	cubes[8].pos = glm::vec3(1, 1, 1);
-	// segundo nivel
-	cubes[9].pos = glm::vec3(-1, 0, -1);
-	cubes[10].pos = glm::vec3(0, 0, -1);
-	cubes[11].pos = glm::vec3(1, 0, -1);
-	cubes[12].pos = glm::vec3(-1, 0, 0);
-	// cubes[13].model = glm::vec3(0, 0, 0); omitimos el 13, porque es el centro y no lo necesitamos
-	cubes[14].pos = glm::vec3(1, 0, 0);
-	cubes[15].pos = glm::vec3(-1, 0, 1);
-	cubes[16].pos = glm::vec3(0, 0, 1);
-	cubes[17].pos = glm::vec3(1, 0, 1);
-	// tercer nivel
-	cubes[18].pos = glm::vec3(-1, -1, -1);
-	cubes[19].pos = glm::vec3(0, -1, -1);
-	cubes[20].pos = glm::vec3(1, -1, -1);
-	cubes[21].pos = glm::vec3(-1, -1, 0);
-	cubes[22].pos = glm::vec3(0, -1, 0);
-	cubes[23].pos = glm::vec3(1, -1, 0);
-	cubes[24].pos = glm::vec3(-1, -1, 1);
-	cubes[25].pos = glm::vec3(0, -1, 1);
-	cubes[26].pos = glm::vec3(1, -1, 1);
-
-
-	// ahora configuramos como está el cubo por primera vez
-	// esta es la configuración inicial del solver del cubo de rubik
-	cubeString = "w w w w w w w w w\n"
-		"o o o o o o o o o\n"
-		"g g g g g g g g g\n"
-		"r r r r r r r r r\n"
-		"l l l l l l l l l\n"
-		"y y y y y y y y y";
-	// ingresamos este string al stringstream
-	ssCubeString << cubeString;
-	// ingresamos este stringstream al solver para su posterior resolución
-	ssCubeString >> rubikSolver;
-}
-
-// configura las matrices modelos de cada cubo del cubo de rubik, 
-// también se configura una transformación global a todos los cubos, de ser el caso
-void RubikCube3x3::ApplyTransformation(glm::mat4 glob_trans)
-{
-	// aplicando la transformación global a todos los cubos
-	for (int i = 0; i < NCUBES; ++i)
-		cubes[i].model = cubes[i].model * glob_trans;
-}
 
 ///////////////////////////////////////////////////////////////////
 // RUBIK CUBE 3X3
 ///////////////////////////////////////////////////////////////////
-// PRIVATE INTERFACE
+
+///////////////////////
+// PRIVATE INTERFACE //
+// ////////////////////
+// Aplica los movimientos al solver y se encarga de eliminar los movimientos
+// cuando el solver se está resolviendo
 void RubikCube3x3::HandleRubikMoves(char movement)
 {
 	static bool was_last_move = false;
@@ -252,14 +181,150 @@ void RubikCube3x3::HandleRubikMoves(char movement)
 	}
 }
 
+// orientation: h significa horario, a significa antihorario
+void RubikCube3x3::CalculateRotation(float& parts, glm::vec3& axis, glm::mat4& rotationMatrix, char orientation)
+{
+	step = (angle + step >= 90.0f) ? 90.0f - angle : 90.0f / parts;
+	// en este caso rotaremos por el step
+	float w = cosf(glm::radians((orientation == 'h' ? -step : step) / 2));
+	float v = sinf(glm::radians((orientation == 'h' ? -step : step) / 2));
+	glm::vec3 rotAxis = v * axis;
+	glm::quat q(w, rotAxis); // usamos un quaternion para las rotaciones
+	rotationMatrix = glm::mat4_cast(q); // casteamos la rotación del quaternion a matriz
+}
+
+//////////////////////
+// PUBLIC INTERFACE //
+//////////////////////
+RubikCube3x3::RubikCube3x3(const Shader& program_, std::vector<std::string> textures)
+{
+	// inicializando los atributos
+	program = program_;
+	RVAO = 0; // valor por defecto del VAO
+	global_model = glm::mat4(1.0f);
+	inverse_global_model = glm::inverse(global_model);
+
+
+	program.use();
+	// cargando las texturas y configurando las unit textures
+	for (int i = 0; i < std::min(static_cast<size_t>(MAX_N_TEXTURES), textures.size()); ++i)
+	{
+		GLuint tmp_texture_unit;
+		confTexture(tmp_texture_unit, textures[i]);
+		textureUnits.push_back(tmp_texture_unit);
+		std::string sampler_uniform = "texture" + std::to_string(i);
+		program.setInt(sampler_uniform.c_str(), i);
+	}
+
+	// primer nivel
+	// posiciones
+	cubes[0].pos = glm::vec3(-1, 1, -1);
+	cubes[1].pos = glm::vec3(0, 1, -1);
+	cubes[2].pos = glm::vec3(1, 1, -1);
+	cubes[3].pos = glm::vec3(-1, 1, 0);
+	cubes[4].pos = glm::vec3(0, 1, 0);
+	cubes[5].pos = glm::vec3(1, 1, 0);
+	cubes[6].pos = glm::vec3(-1, 1, 1);
+	cubes[7].pos = glm::vec3(0, 1, 1);
+	cubes[8].pos = glm::vec3(1, 1, 1);
+	// colores negros L se interpreta como el color negro
+	cubes[0].colors[2] = 'L', cubes[0].colors[3] = 'L', cubes[0].colors[5] = 'L';
+	cubes[1].colors[1] = 'L', cubes[1].colors[2] = 'L', cubes[1].colors[3] = 'L', cubes[1].colors[5] = 'L';
+	cubes[2].colors[1] = 'L', cubes[2].colors[2] = 'L', cubes[2].colors[5] = 'L';
+	cubes[3].colors[2] = 'L', cubes[3].colors[3] = 'L', cubes[3].colors[4] = 'L', cubes[3].colors[5] = 'L';
+	cubes[4].colors[1] = 'L', cubes[4].colors[2] = 'L', cubes[4].colors[3] = 'L', cubes[4].colors[4] = 'L', cubes[4].colors[5] = 'L';
+	cubes[5].colors[1] = 'L', cubes[5].colors[2] = 'L', cubes[5].colors[4] = 'L', cubes[5].colors[5] = 'L';
+	cubes[6].colors[3] = 'L', cubes[6].colors[4] = 'L', cubes[6].colors[5] = 'L';
+	cubes[7].colors[1] = 'L', cubes[7].colors[3] = 'L', cubes[7].colors[4] = 'L', cubes[7].colors[5] = 'L';
+	cubes[8].colors[1] = 'L', cubes[8].colors[4] = 'L', cubes[8].colors[5] = 'L';
+
+	// segundo nivel
+	// posiciones
+	cubes[9].pos = glm::vec3(-1, 0, -1);
+	cubes[10].pos = glm::vec3(0, 0, -1);
+	cubes[11].pos = glm::vec3(1, 0, -1);
+	cubes[12].pos = glm::vec3(-1, 0, 0);
+	// cubes[13].model = glm::vec3(0, 0, 0); omitimos el 13, porque es el centro y no lo necesitamos
+	cubes[14].pos = glm::vec3(1, 0, 0);
+	cubes[15].pos = glm::vec3(-1, 0, 1);
+	cubes[16].pos = glm::vec3(0, 0, 1);
+	cubes[17].pos = glm::vec3(1, 0, 1);
+	// colores
+	cubes[9].colors[0] = 'L', cubes[9].colors[2] = 'L', cubes[9].colors[3] = 'L', cubes[9].colors[5] = 'L';
+	cubes[10].colors[0] = 'L', cubes[10].colors[1] = 'L', cubes[10].colors[2] = 'L', cubes[10].colors[3] = 'L', cubes[10].colors[5] = 'L';
+	cubes[11].colors[0] = 'L', cubes[11].colors[1] = 'L', cubes[11].colors[2] = 'L', cubes[11].colors[5] = 'L';
+	cubes[12].colors[0] = 'L', cubes[12].colors[2] = 'L', cubes[12].colors[3] = 'L', cubes[12].colors[4] = 'L', cubes[12].colors[5] = 'L';
+	cubes[14].colors[0] = 'L', cubes[14].colors[1] = 'L', cubes[14].colors[2] = 'L', cubes[14].colors[4] = 'L', cubes[14].colors[5] = 'L';
+	cubes[15].colors[0] = 'L', cubes[15].colors[3] = 'L', cubes[15].colors[4] = 'L', cubes[15].colors[5] = 'L';
+	cubes[16].colors[0] = 'L', cubes[16].colors[1] = 'L', cubes[16].colors[3] = 'L', cubes[16].colors[4] = 'L', cubes[16].colors[5] = 'L';
+	cubes[17].colors[0] = 'L', cubes[17].colors[1] = 'L', cubes[17].colors[4] = 'L', cubes[17].colors[5] = 'L';
+
+	// tercer nivel
+	// posiciones
+	cubes[18].pos = glm::vec3(-1, -1, -1);
+	cubes[19].pos = glm::vec3(0, -1, -1);
+	cubes[20].pos = glm::vec3(1, -1, -1);
+	cubes[21].pos = glm::vec3(-1, -1, 0);
+	cubes[22].pos = glm::vec3(0, -1, 0);
+	cubes[23].pos = glm::vec3(1, -1, 0);
+	cubes[24].pos = glm::vec3(-1, -1, 1);
+	cubes[25].pos = glm::vec3(0, -1, 1);
+	cubes[26].pos = glm::vec3(1, -1, 1);
+	// colores
+	cubes[18].colors[0] = 'L', cubes[18].colors[2] = 'L', cubes[18].colors[3] = 'L';
+	cubes[19].colors[0] = 'L', cubes[19].colors[1] = 'L', cubes[19].colors[2] = 'L', cubes[19].colors[3] = 'L';
+	cubes[20].colors[0] = 'L', cubes[20].colors[1] = 'L', cubes[20].colors[2] = 'L';
+	cubes[21].colors[0] = 'L', cubes[21].colors[2] = 'L', cubes[21].colors[3] = 'L', cubes[21].colors[4] = 'L';
+	cubes[22].colors[0] = 'L', cubes[22].colors[1] = 'L', cubes[22].colors[2] = 'L', cubes[22].colors[3] = 'L', cubes[22].colors[4] = 'L';
+	cubes[23].colors[0] = 'L', cubes[23].colors[1] = 'L', cubes[23].colors[2] = 'L', cubes[23].colors[4] = 'L';
+	cubes[24].colors[0] = 'L', cubes[24].colors[3] = 'L', cubes[24].colors[4] = 'L';
+	cubes[25].colors[0] = 'L', cubes[25].colors[1] = 'L', cubes[25].colors[3] = 'L', cubes[25].colors[4] = 'L';
+	cubes[26].colors[0] = 'L', cubes[26].colors[1] = 'L', cubes[26].colors[4] = 'L';
+
+	for (int i = 0; i < NCUBES; ++i) {
+		if (i == 13) continue;
+		cubes[i].pos += 0.05f * cubes[i].pos;
+		animator.init_pos[i] = cubes[i].pos;
+	}
+
+
+	// ahora configuramos como está el cubo por primera vez
+	// esta es la configuración inicial del solver del cubo de rubik
+	cubeString = "w w w w w w w w w\n"
+		"o o o o o o o o o\n"
+		"g g g g g g g g g\n"
+		"r r r r r r r r r\n"
+		"l l l l l l l l l\n"
+		"y y y y y y y y y";
+	// ingresamos este string al stringstream
+	std::stringstream ssCubeString;
+	ssCubeString << cubeString;
+	// ingresamos este stringstream al solver para su posterior resolución
+	ssCubeString >> rubikSolver;
+}
+
+
+// FUNCIONES PARA EL DIBUJO DEL CUBO Y ANIMACIONES
+// configura las matrices modelos de cada cubo del cubo de rubik, 
+// también se configura una transformación global a todos los cubos, de ser el caso
+void RubikCube3x3::ApplyTransformation(glm::mat4 glob_trans)
+{
+	// aplicando la transformación global a todos los cubos
+	global_model = glob_trans;
+	inverse_global_model = glm::inverse(global_model);
+}
 // pasamos como parámetros las matrices de vista y proyección globales
 void RubikCube3x3::DrawCube(glm::mat4& view, glm::mat4& projection)
 {
 	// render cube
 	glBindVertexArray(RVAO);
 	//// activando la textura con su respectiva unidad de textura
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	for (int i = 0; i < textureUnits.size(); ++i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, textureUnits[i]);
+	}
+
+	program.setFloat("mixRatio", sin(glfwGetTime() * 2.0f) * 0.5f + 0.5f);
 
 	for (int i = 0; i < NCUBES; ++i)
 	{
@@ -268,6 +333,7 @@ void RubikCube3x3::DrawCube(glm::mat4& view, glm::mat4& projection)
 		// pero luego debemos quitar tal traslación para que no desaparezcan
 		// en el infinito tales cubos
 		cubes[i].model = glm::translate(cubes[i].model, cubes[i].pos);
+		cubes[i].model = global_model * cubes[i].model;
 		program.use();
 		program.setMat4("projection", projection);
 		program.setMat4("view", view);
@@ -275,117 +341,161 @@ void RubikCube3x3::DrawCube(glm::mat4& view, glm::mat4& projection)
 
 		cubes[i].draw(program);
 
+		cubes[i].model = inverse_global_model * cubes[i].model;
 		// aquí quitamos la traslación del cubo
 		cubes[i].model = glm::translate(cubes[i].model, -cubes[i].pos);
 	}
 
 }
-
-void RubikCube3x3::HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& some_state)
+void RubikCube3x3::HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& move_state, FLUENT_ANIMATION& animation)
 {
-	switch (some_state)
+	static float turbo = 0.75f;
+	float parts = 90.0f * (1.0f - turbo);
+
+	switch (move_state)
 	{
 	case STATE_ANIMATION::F:
 	{
 		// EL ERROR SE ENCUENTRA EN EL ÚLTIMO MOVIMIENTO EJECUTADO POR EL SOLVER
-		if (F()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (F(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('F');
 		}
 		break;
 	}
 	case STATE_ANIMATION::f:
 	{
-		if (f()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (f(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('f');
 		}
 		break;
 	}
 	case STATE_ANIMATION::R:
 	{
-		if (R()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (R(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('R');
 		}
 		break;
 	}
 	case STATE_ANIMATION::r:
 	{
-		if (r()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (r(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('r');
 		}
 		break;
 	}
 	case STATE_ANIMATION::U:
 	{
-		if (U()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (U(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('U');
 		}
 		break;
 	}
 	case STATE_ANIMATION::u:
 	{
-		if (u()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (u(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('u');
 		}
 		break;
 	}
 	case STATE_ANIMATION::B:
 	{
-		if (B()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (B(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('B');
 		}
 		break;
 	}
 	case STATE_ANIMATION::b:
 	{
-		if (b()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (b(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('b');
 		}
 		break;
 	}
 	case STATE_ANIMATION::L:
 	{
-		if (L()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (L(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('L');
 		}
 		break;
 	}
 	case STATE_ANIMATION::l:
 	{
-		if (l()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (l(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('l');
 		}
 		break;
 	}
 	case STATE_ANIMATION::D:
 	{
-		if (D()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (D(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('D');
 		}
 		break;
 	}
 	case STATE_ANIMATION::d:
 	{
-		if (d()) {
-			some_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
+		if (d(parts)) {
+			move_state = solutionStates.empty() ? STATE_ANIMATION::NONE : solutionStates.front();
 			HandleRubikMoves('d');
 		}
 		break;
 	}
 	}
-	DrawCube(view, projection);
-}
+	
+	switch (animation)
+	{
+	case FLUENT_ANIMATION::BREATHE: {
+		animator.domain += 0.005f;
+		if (animator.domain >= glm::pi<float>())
+			animator.domain = -glm::pi<float>();
+		animator.scalar = cosf(animator.domain) * 0.25f + 1.25f;
+		for (int i = 0; i < NCUBES; ++i) {
+			if (i == 13) continue;
+			cubes[i].pos = animator.scalar * cubes[i].pos;
+		}
+		break;
+	}
+	case FLUENT_ANIMATION::STATIC: {
+		for (int i = 0; i < NCUBES; ++i) {
+			if (i == 13) continue;
+			cubes[i].pos = animator.scalar * cubes[i].pos;
+		}
+		break;
+	}
+	}
 
+	DrawCube(view, projection);
+	
+	switch (animation)
+	{
+	case FLUENT_ANIMATION::BREATHE: {
+		// cancelando el anterior escalamiento
+		for (int i = 0; i < NCUBES; ++i) {
+			if (i == 13) continue;
+			cubes[i].pos = 1 / animator.scalar * cubes[i].pos;
+		}
+		break;
+	}
+	case FLUENT_ANIMATION::STATIC: {
+		for (int i = 0; i < NCUBES; ++i) {
+			if (i == 13) continue;
+			cubes[i].pos = 1 / animator.scalar * cubes[i].pos;
+		}
+		break;
+	}
+	}
+}
 void RubikCube3x3::Solve(STATE_ANIMATION& some_state)
 {
 	std::stringstream ss;
@@ -427,29 +537,29 @@ void RubikCube3x3::Solve(STATE_ANIMATION& some_state)
 	some_state = solutionStates.front();
 	solutionStates.pop(); // un pop porque ya consumimos un movimiento
 }
-
 void RubikCube3x3::AssociateVAO(GLuint VAO)
 {
 	RVAO = VAO;
 }
+
+// MOVIMIENTOS DEL CUBO
 // retorna verdadero cuando la animación ha terminado
-bool RubikCube3x3::F()
+bool RubikCube3x3::F(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 z = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::mat4 I4(1.0f);
-	cubes[6].model = glm::rotate(I4, glm::radians(-step), z) * cubes[6].model;
-	cubes[7].model = glm::rotate(I4, glm::radians(-step), z) * cubes[7].model;
-	cubes[8].model = glm::rotate(I4, glm::radians(-step), z) * cubes[8].model;
-	cubes[15].model = glm::rotate(I4, glm::radians(-step), z) * cubes[15].model;
-	cubes[16].model = glm::rotate(I4, glm::radians(-step), z) * cubes[16].model;
-	cubes[17].model = glm::rotate(I4, glm::radians(-step), z) * cubes[17].model;
-	cubes[24].model = glm::rotate(I4, glm::radians(-step), z) * cubes[24].model;
-	cubes[25].model = glm::rotate(I4, glm::radians(-step), z) * cubes[25].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(-step), z) * cubes[26].model;
-	if (angle >= 90)
+	CalculateRotation(parts, z, R, 'h');
+	angle += step;
+	cubes[6].model = R * cubes[6].model;
+	cubes[7].model = R * cubes[7].model;
+	cubes[8].model = R * cubes[8].model;
+	cubes[15].model = R * cubes[15].model;
+	cubes[16].model = R * cubes[16].model;
+	cubes[17].model = R * cubes[17].model;
+	cubes[24].model = R * cubes[24].model;
+	cubes[25].model = R * cubes[25].model;
+	cubes[26].model = R * cubes[26].model;
+	if (angle >= 90.0f)
 	{
 		angle = 0.0f;
 		// ahora debemos actualizar las coordenadas y modelos de los cubos que cambian por la rotación
@@ -465,22 +575,22 @@ bool RubikCube3x3::F()
 }
 
 // retorna verdadero cuando la animación ha terminado
-bool RubikCube3x3::f()
+bool RubikCube3x3::f(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 z = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::mat4 I4(1.0f);
-	cubes[6].model = glm::rotate(I4, glm::radians(step), z) * cubes[6].model;
-	cubes[7].model = glm::rotate(I4, glm::radians(step), z) * cubes[7].model;
-	cubes[8].model = glm::rotate(I4, glm::radians(step), z) * cubes[8].model;
-	cubes[15].model = glm::rotate(I4, glm::radians(step), z) * cubes[15].model;
-	cubes[16].model = glm::rotate(I4, glm::radians(step), z) * cubes[16].model;
-	cubes[17].model = glm::rotate(I4, glm::radians(step), z) * cubes[17].model;
-	cubes[24].model = glm::rotate(I4, glm::radians(step), z) * cubes[24].model;
-	cubes[25].model = glm::rotate(I4, glm::radians(step), z) * cubes[25].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(step), z) * cubes[26].model;
+	CalculateRotation(parts, z, R, 'a');
+	angle += step;
+
+	cubes[6].model = R * cubes[6].model;
+	cubes[7].model = R * cubes[7].model;
+	cubes[8].model = R * cubes[8].model;
+	cubes[15].model = R * cubes[15].model;
+	cubes[16].model = R * cubes[16].model;
+	cubes[17].model = R * cubes[17].model;
+	cubes[24].model = R * cubes[24].model;
+	cubes[25].model = R * cubes[25].model;
+	cubes[26].model = R * cubes[26].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -496,22 +606,21 @@ bool RubikCube3x3::f()
 	return false;
 }
 
-bool RubikCube3x3::R()
+bool RubikCube3x3::R(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 x = glm::vec3(1.0f, 0.0f, 0.0f);
-	glm::mat4 I4(1.0f);
-	cubes[8].model = glm::rotate(I4, glm::radians(-step), x) * cubes[8].model;
-	cubes[5].model = glm::rotate(I4, glm::radians(-step), x) * cubes[5].model;
-	cubes[2].model = glm::rotate(I4, glm::radians(-step), x) * cubes[2].model;
-	cubes[17].model = glm::rotate(I4, glm::radians(-step), x) * cubes[17].model;
-	cubes[14].model = glm::rotate(I4, glm::radians(-step), x) * cubes[14].model;
-	cubes[11].model = glm::rotate(I4, glm::radians(-step), x) * cubes[11].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(-step), x) * cubes[26].model;
-	cubes[23].model = glm::rotate(I4, glm::radians(-step), x) * cubes[23].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(-step), x) * cubes[20].model;
+	CalculateRotation(parts, x, R, 'h');
+	angle += step;
+	cubes[8].model = R * cubes[8].model;
+	cubes[5].model = R * cubes[5].model;
+	cubes[2].model = R * cubes[2].model;
+	cubes[17].model = R * cubes[17].model;
+	cubes[14].model = R * cubes[14].model;
+	cubes[11].model = R * cubes[11].model;
+	cubes[26].model = R * cubes[26].model;
+	cubes[23].model = R * cubes[23].model;
+	cubes[20].model = R * cubes[20].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -526,22 +635,21 @@ bool RubikCube3x3::R()
 	return false;
 }
 
-bool RubikCube3x3::r()
+bool RubikCube3x3::r(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 x = glm::vec3(1.0f, 0.0f, 0.0f);
-	glm::mat4 I4(1.0f);
-	cubes[8].model = glm::rotate(I4, glm::radians(step), x) * cubes[8].model;
-	cubes[5].model = glm::rotate(I4, glm::radians(step), x) * cubes[5].model;
-	cubes[2].model = glm::rotate(I4, glm::radians(step), x) * cubes[2].model;
-	cubes[17].model = glm::rotate(I4, glm::radians(step), x) * cubes[17].model;
-	cubes[14].model = glm::rotate(I4, glm::radians(step), x) * cubes[14].model;
-	cubes[11].model = glm::rotate(I4, glm::radians(step), x) * cubes[11].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(step), x) * cubes[26].model;
-	cubes[23].model = glm::rotate(I4, glm::radians(step), x) * cubes[23].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(step), x) * cubes[20].model;
+	CalculateRotation(parts, x, R, 'a');
+	angle += step;
+	cubes[8].model = R * cubes[8].model;
+	cubes[5].model = R * cubes[5].model;
+	cubes[2].model = R * cubes[2].model;
+	cubes[17].model = R * cubes[17].model;
+	cubes[14].model = R * cubes[14].model;
+	cubes[11].model = R * cubes[11].model;
+	cubes[26].model = R * cubes[26].model;
+	cubes[23].model = R * cubes[23].model;
+	cubes[20].model = R * cubes[20].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -556,22 +664,21 @@ bool RubikCube3x3::r()
 	return false;
 }
 
-bool RubikCube3x3::U()
+bool RubikCube3x3::U(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 y = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::mat4 I4(1.0f);
-	cubes[0].model = glm::rotate(I4, glm::radians(-step), y) * cubes[0].model;
-	cubes[1].model = glm::rotate(I4, glm::radians(-step), y) * cubes[1].model;
-	cubes[2].model = glm::rotate(I4, glm::radians(-step), y) * cubes[2].model;
-	cubes[3].model = glm::rotate(I4, glm::radians(-step), y) * cubes[3].model;
-	cubes[4].model = glm::rotate(I4, glm::radians(-step), y) * cubes[4].model;
-	cubes[5].model = glm::rotate(I4, glm::radians(-step), y) * cubes[5].model;
-	cubes[6].model = glm::rotate(I4, glm::radians(-step), y) * cubes[6].model;
-	cubes[7].model = glm::rotate(I4, glm::radians(-step), y) * cubes[7].model;
-	cubes[8].model = glm::rotate(I4, glm::radians(-step), y) * cubes[8].model;
+	CalculateRotation(parts, y, R, 'h');
+	angle += step;
+	cubes[0].model = R * cubes[0].model;
+	cubes[1].model = R * cubes[1].model;
+	cubes[2].model = R * cubes[2].model;
+	cubes[3].model = R * cubes[3].model;
+	cubes[4].model = R * cubes[4].model;
+	cubes[5].model = R * cubes[5].model;
+	cubes[6].model = R * cubes[6].model;
+	cubes[7].model = R * cubes[7].model;
+	cubes[8].model = R * cubes[8].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -586,22 +693,21 @@ bool RubikCube3x3::U()
 	return false;
 }
 
-bool RubikCube3x3::u()
+bool RubikCube3x3::u(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R;
 	glm::vec3 y = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::mat4 I4(1.0f);
-	cubes[0].model = glm::rotate(I4, glm::radians(step), y) * cubes[0].model;
-	cubes[1].model = glm::rotate(I4, glm::radians(step), y) * cubes[1].model;
-	cubes[2].model = glm::rotate(I4, glm::radians(step), y) * cubes[2].model;
-	cubes[3].model = glm::rotate(I4, glm::radians(step), y) * cubes[3].model;
-	cubes[4].model = glm::rotate(I4, glm::radians(step), y) * cubes[4].model;
-	cubes[5].model = glm::rotate(I4, glm::radians(step), y) * cubes[5].model;
-	cubes[6].model = glm::rotate(I4, glm::radians(step), y) * cubes[6].model;
-	cubes[7].model = glm::rotate(I4, glm::radians(step), y) * cubes[7].model;
-	cubes[8].model = glm::rotate(I4, glm::radians(step), y) * cubes[8].model;
+	CalculateRotation(parts, y, R, 'a');
+	angle += step;
+	cubes[0].model = R * cubes[0].model;
+	cubes[1].model = R * cubes[1].model;
+	cubes[2].model = R * cubes[2].model;
+	cubes[3].model = R * cubes[3].model;
+	cubes[4].model = R * cubes[4].model;
+	cubes[5].model = R * cubes[5].model;
+	cubes[6].model = R * cubes[6].model;
+	cubes[7].model = R * cubes[7].model;
+	cubes[8].model = R * cubes[8].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -616,22 +722,21 @@ bool RubikCube3x3::u()
 	return false;
 }
 
-bool RubikCube3x3::B()
+bool RubikCube3x3::B(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 z = glm::vec3(0.0f, 0.0f, -1.0f);// z negativo
-	glm::mat4 I4(1.0f);
-	cubes[2].model = glm::rotate(I4, glm::radians(-step), z) * cubes[2].model;
-	cubes[1].model = glm::rotate(I4, glm::radians(-step), z) * cubes[1].model;
-	cubes[0].model = glm::rotate(I4, glm::radians(-step), z) * cubes[0].model;
-	cubes[11].model = glm::rotate(I4, glm::radians(-step), z) * cubes[11].model;
-	cubes[10].model = glm::rotate(I4, glm::radians(-step), z) * cubes[10].model;
-	cubes[9].model = glm::rotate(I4, glm::radians(-step), z) * cubes[9].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(-step), z) * cubes[20].model;
-	cubes[19].model = glm::rotate(I4, glm::radians(-step), z) * cubes[19].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(-step), z) * cubes[18].model;
+	CalculateRotation(parts, z, R, 'h');
+	angle += step;
+	cubes[2].model = R * cubes[2].model;
+	cubes[1].model = R * cubes[1].model;
+	cubes[0].model = R * cubes[0].model;
+	cubes[11].model = R * cubes[11].model;
+	cubes[10].model = R * cubes[10].model;
+	cubes[9].model = R * cubes[9].model;
+	cubes[20].model = R * cubes[20].model;
+	cubes[19].model = R * cubes[19].model;
+	cubes[18].model = R * cubes[18].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -646,22 +751,21 @@ bool RubikCube3x3::B()
 	return false;
 }
 
-bool RubikCube3x3::b()
+bool RubikCube3x3::b(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 z = glm::vec3(0.0f, 0.0f, -1.0f); // z negativo
-	glm::mat4 I4(1.0f);
-	cubes[2].model = glm::rotate(I4, glm::radians(step), z) * cubes[2].model;
-	cubes[1].model = glm::rotate(I4, glm::radians(step), z) * cubes[1].model;
-	cubes[0].model = glm::rotate(I4, glm::radians(step), z) * cubes[0].model;
-	cubes[11].model = glm::rotate(I4, glm::radians(step), z) * cubes[11].model;
-	cubes[10].model = glm::rotate(I4, glm::radians(step), z) * cubes[10].model;
-	cubes[9].model = glm::rotate(I4, glm::radians(step), z) * cubes[9].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(step), z) * cubes[20].model;
-	cubes[19].model = glm::rotate(I4, glm::radians(step), z) * cubes[19].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(step), z) * cubes[18].model;
+	CalculateRotation(parts, z, R, 'a');
+	angle += step;
+	cubes[2].model = R * cubes[2].model;
+	cubes[1].model = R * cubes[1].model;
+	cubes[0].model = R * cubes[0].model;
+	cubes[11].model = R * cubes[11].model;
+	cubes[10].model = R * cubes[10].model;
+	cubes[9].model = R * cubes[9].model;
+	cubes[20].model = R * cubes[20].model;
+	cubes[19].model = R * cubes[19].model;
+	cubes[18].model = R * cubes[18].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -676,22 +780,21 @@ bool RubikCube3x3::b()
 	return false;
 }
 
-bool RubikCube3x3::L()
+bool RubikCube3x3::L(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 x = glm::vec3(-1.0f, 0.0f, 0.0f); // negative x
-	glm::mat4 I4(1.0f);
-	cubes[0].model = glm::rotate(I4, glm::radians(-step), x) * cubes[0].model;
-	cubes[3].model = glm::rotate(I4, glm::radians(-step), x) * cubes[3].model;
-	cubes[6].model = glm::rotate(I4, glm::radians(-step), x) * cubes[6].model;
-	cubes[9].model = glm::rotate(I4, glm::radians(-step), x) * cubes[9].model;
-	cubes[12].model = glm::rotate(I4, glm::radians(-step), x) * cubes[12].model;
-	cubes[15].model = glm::rotate(I4, glm::radians(-step), x) * cubes[15].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(-step), x) * cubes[18].model;
-	cubes[21].model = glm::rotate(I4, glm::radians(-step), x) * cubes[21].model;
-	cubes[24].model = glm::rotate(I4, glm::radians(-step), x) * cubes[24].model;
+	CalculateRotation(parts, x, R, 'h');
+	angle += step;
+	cubes[0].model = R * cubes[0].model;
+	cubes[3].model = R * cubes[3].model;
+	cubes[6].model = R * cubes[6].model;
+	cubes[9].model = R * cubes[9].model;
+	cubes[12].model = R * cubes[12].model;
+	cubes[15].model = R * cubes[15].model;
+	cubes[18].model = R * cubes[18].model;
+	cubes[21].model = R * cubes[21].model;
+	cubes[24].model = R * cubes[24].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -706,22 +809,21 @@ bool RubikCube3x3::L()
 	return false;
 }
 
-bool RubikCube3x3::l()
+bool RubikCube3x3::l(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 x = glm::vec3(-1.0f, 0.0f, 0.0f); // negative x
-	glm::mat4 I4(1.0f);
-	cubes[0].model = glm::rotate(I4, glm::radians(step), x) * cubes[0].model;
-	cubes[3].model = glm::rotate(I4, glm::radians(step), x) * cubes[3].model;
-	cubes[6].model = glm::rotate(I4, glm::radians(step), x) * cubes[6].model;
-	cubes[9].model = glm::rotate(I4, glm::radians(step), x) * cubes[9].model;
-	cubes[12].model = glm::rotate(I4, glm::radians(step), x) * cubes[12].model;
-	cubes[15].model = glm::rotate(I4, glm::radians(step), x) * cubes[15].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(step), x) * cubes[18].model;
-	cubes[21].model = glm::rotate(I4, glm::radians(step), x) * cubes[21].model;
-	cubes[24].model = glm::rotate(I4, glm::radians(step), x) * cubes[24].model;
+	CalculateRotation(parts, x, R, 'a');
+	angle += step;
+	cubes[0].model = R * cubes[0].model;
+	cubes[3].model = R * cubes[3].model;
+	cubes[6].model = R * cubes[6].model;
+	cubes[9].model = R * cubes[9].model;
+	cubes[12].model = R * cubes[12].model;
+	cubes[15].model = R * cubes[15].model;
+	cubes[18].model = R * cubes[18].model;
+	cubes[21].model = R * cubes[21].model;
+	cubes[24].model = R * cubes[24].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -736,22 +838,21 @@ bool RubikCube3x3::l()
 	return false;
 }
 
-bool RubikCube3x3::D()
+bool RubikCube3x3::D(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 y = glm::vec3(0.0f, -1.0f, 0.0f); // y negativo
-	glm::mat4 I4(1.0f);
-	cubes[24].model = glm::rotate(I4, glm::radians(-step), y) * cubes[24].model;
-	cubes[25].model = glm::rotate(I4, glm::radians(-step), y) * cubes[25].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(-step), y) * cubes[26].model;
-	cubes[21].model = glm::rotate(I4, glm::radians(-step), y) * cubes[21].model;
-	cubes[22].model = glm::rotate(I4, glm::radians(-step), y) * cubes[22].model;
-	cubes[23].model = glm::rotate(I4, glm::radians(-step), y) * cubes[23].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(-step), y) * cubes[18].model;
-	cubes[19].model = glm::rotate(I4, glm::radians(-step), y) * cubes[19].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(-step), y) * cubes[20].model;
+	CalculateRotation(parts, y, R, 'h');
+	angle += step;
+	cubes[24].model = R * cubes[24].model;
+	cubes[25].model = R * cubes[25].model;
+	cubes[26].model = R * cubes[26].model;
+	cubes[21].model = R * cubes[21].model;
+	cubes[22].model = R * cubes[22].model;
+	cubes[23].model = R * cubes[23].model;
+	cubes[18].model = R * cubes[18].model;
+	cubes[19].model = R * cubes[19].model;
+	cubes[20].model = R * cubes[20].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;
@@ -766,22 +867,21 @@ bool RubikCube3x3::D()
 	return false;
 }
 
-bool RubikCube3x3::d()
+bool RubikCube3x3::d(float parts)
 {
-	static float angle = 0.0f;
-	float step = 0.5f;
-	angle += step;
+	glm::mat4 R(1.0f);
 	glm::vec3 y = glm::vec3(0.0f, -1.0f, 0.0f); // y negativo
-	glm::mat4 I4(1.0f);
-	cubes[24].model = glm::rotate(I4, glm::radians(step), y) * cubes[24].model;
-	cubes[25].model = glm::rotate(I4, glm::radians(step), y) * cubes[25].model;
-	cubes[26].model = glm::rotate(I4, glm::radians(step), y) * cubes[26].model;
-	cubes[21].model = glm::rotate(I4, glm::radians(step), y) * cubes[21].model;
-	cubes[22].model = glm::rotate(I4, glm::radians(step), y) * cubes[22].model;
-	cubes[23].model = glm::rotate(I4, glm::radians(step), y) * cubes[23].model;
-	cubes[18].model = glm::rotate(I4, glm::radians(step), y) * cubes[18].model;
-	cubes[19].model = glm::rotate(I4, glm::radians(step), y) * cubes[19].model;
-	cubes[20].model = glm::rotate(I4, glm::radians(step), y) * cubes[20].model;
+	CalculateRotation(parts, y, R, 'a');
+	angle += step;
+	cubes[24].model = R * cubes[24].model;
+	cubes[25].model = R * cubes[25].model;
+	cubes[26].model = R * cubes[26].model;
+	cubes[21].model = R * cubes[21].model;
+	cubes[22].model = R * cubes[22].model;
+	cubes[23].model = R * cubes[23].model;
+	cubes[18].model = R * cubes[18].model;
+	cubes[19].model = R * cubes[19].model;
+	cubes[20].model = R * cubes[20].model;
 	if (angle >= 90)
 	{
 		angle = 0.0f;

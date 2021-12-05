@@ -6,12 +6,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include <vector>
 #include <string>
 #include <sstream>
 #include <stack>
 #include <queue>
+#include <algorithm>
 
 #include "shader.h"
 #include "loadTextures.h"
@@ -126,20 +130,19 @@ static GLuint cube_indices[] =
 };
 
 
-
 class Cube
 {
 private:
 	static const int NFACES = 6;
-	char colors[NFACES];
 	void chooseColor(const Shader& program, GLint i);
 public:
+	char colors[NFACES];
+	
 	glm::vec3 pos;
 	glm::mat4 model;
 	Cube();
 	Cube(const Cube& another_cube);
 	Cube(glm::mat4 model_, glm::vec3 pos_);
-	void setColor(GLint i, char c);
 	void draw(const Shader& program);
 	~Cube();
 };
@@ -148,14 +151,18 @@ class RubikCube3x3
 {
 public:
 	enum class STATE_ANIMATION { NONE, F, f, U, u, L, l, R, r, B, b, D, d, SOLVE };
+	enum class FLUENT_ANIMATION { BREATHE, STATIC };
 	Shader program;
 private:
 	static const int NCUBES = 27;
+	static const int MAX_N_TEXTURES = 2;
 	// cada cubo de rubik tiene estas variables
 	// imgPaths[0] = whiteFace.jpg, imgPaths[1] = orangeFace.jpg, imgPaths[2] = greenFace.jpg
 	// imgPaths[3] = redFace.jpg, imgPaths[4] = blueFace.jpg, imgPaths[5] = yellowFace.jpg
-	std::string texturePath;
-	GLuint textureID;
+	std::vector<GLuint> textureUnits;
+
+	glm::mat4 global_model;
+	glm::mat4 inverse_global_model;
 
 	GLuint RVAO; // associated VAO
 	// índice de inicio 0, omitimos el cubo con índice 13, ya que es el centro
@@ -163,48 +170,64 @@ private:
 	STATE_ANIMATION state_animation = STATE_ANIMATION::NONE;
 
 	std::string cubeString;
-	std::stringstream ssCubeString;
 	solver::Rubik rubikSolver;
 	std::vector<char> solution;
 	std::queue<STATE_ANIMATION> solutionStates;
 
-	void HandleRubikMoves(char movement);
-public:
+	float angle = 0.0f, step = 0.0f; // estas variables se usan al momento de realizar los movimientos del cubo
 
-	// dos listas de strings, vertex y fragment shaders para cada cubo con su respectivo índice
-	RubikCube3x3(const char* vertexPath, const char* fragmentPath, const char* texPath);
 	
-	void ApplyTransformation(glm::mat4 glob_trans);
-	void DrawCube(glm::mat4& view, glm::mat4& projection);
-	void HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& some_state);
-	void Solve(STATE_ANIMATION& some_state);
+	void HandleRubikMoves(char movement);
+	// orientation, h: horario, a: antihorario
+	void CalculateRotation(float& parts, glm::vec3& axis, glm::mat4& rotationMatrix, char orientation = 'h');
+	
+	
+	struct AnimationsHandler {
+		glm::vec3 init_pos[NCUBES];
+		float scalar, domain;
+		AnimationsHandler() {
+			domain = -glm::pi<float>();
+			scalar = cosf(domain) * 0.25f + 1.25f;
+			for (int i = 0; i < NCUBES; ++i) init_pos[i] = glm::vec3(0.0f);
+		}
+	} animator;
+public:
+	// Constructores y demás funciones para la configuración
+	RubikCube3x3(const Shader& program_, std::vector<std::string> textures);
 	void AssociateVAO(GLuint VAO);
 
+	// Funciones del cubo
+	void ApplyTransformation(glm::mat4 glob_trans);
+	void DrawCube(glm::mat4& view, glm::mat4& projection);
+	void HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& move_state, FLUENT_ANIMATION& animation);
+	void Solve(STATE_ANIMATION& some_state);
+	void DisorderCube();
 
+	// MOVIMIENTOS DEL CUBO
 	//// rota el FRONT del cubo en sentido horario
-	bool F();
+	bool F(float parts);
 	//// rota el FRONT del cubo en sentido antihorario
-	bool f();
+	bool f(float parts);
 	//// rota el RIGHT del cubo en sentido horario
-	bool R();
+	bool R(float parts);
 	//// rota el RIGHT del cubo en sentido antihorario
-	bool r();
+	bool r(float parts);
 	//// rota el UP del cubo en sentido horario
-	bool U();
+	bool U(float parts);
 	//// rota el UP del cubo en sentido antihorario
-	bool u();
+	bool u(float parts);
 	//// rota el BACK del cubo en sentido horario
-	bool B();
+	bool B(float parts);
 	//// rota el BACK del cubo en sentido antihorario
-	bool b();
+	bool b(float parts);
 	//// rota el LEFT del cubo en sentido horario
-	bool L();
+	bool L(float parts);
 	//// rota el LEFT del cubo en sentido antihorario
-	bool l();
+	bool l(float parts);
 	//// rota el DOWN del cubo en sentido horario
-	bool D();
+	bool D(float parts);
 	//// rota el DOWN del cubo en sentido antihorario
-	bool d();
+	bool d(float parts);
 };
 
 

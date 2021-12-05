@@ -5,7 +5,7 @@
 #add_subdirectory( Tutorial_camera )
 #add_subdirectory( casa_tutorial )
 #add_subdirectory( star_tutorial )
-#add_subdirectory( sierpinski_3d_tutorial )
+add_subdirectory( sierpinski_3d_tutorial )
 #add_subdirectory( circulo_con_poligonos_regulares )
 add_subdirectory( tarea_dibujo_flor )
 add_subdirectory( bezier_curves )
@@ -15,6 +15,7 @@ add_subdirectory( control_1 )
 add_subdirectory( parcial_practico )
 add_subdirectory( Rubik )
 add_subdirectory( RubikCamera )
+add_subdirectory( Projection_NatteRobbins )
 add_subdirectory( hw0 )
 
 

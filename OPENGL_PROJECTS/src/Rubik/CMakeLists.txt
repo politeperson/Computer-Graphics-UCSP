@@ -9,10 +9,11 @@ find_package(OpenGL REQUIRED)
 # shaders reload
 # vertex shader
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vertexShader.glsl ${CMAKE_CURRENT_BINARY_DIR}/vertexShader.glsl)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vertexShaderCube.glsl ${CMAKE_CURRENT_BINARY_DIR}/vertexShaderCube.glsl)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vertexShaderLight.glsl ${CMAKE_CURRENT_BINARY_DIR}/vertexShaderLight.glsl)
 
 # fragment shader
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fragmentShader.glsl ${CMAKE_CURRENT_BINARY_DIR}/fragmentShader.glsl)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fragmentShaderLight.glsl ${CMAKE_CURRENT_BINARY_DIR}/fragmentShaderLight.glsl)
 
 # some images used as a texture
 #configure_file(${CMAKE_CURRENT_SOURCE_DIR}/awesomeface.png ${CMAKE_CURRENT_BINARY_DIR}/awesomeface.png COPYONLY)
@@ -20,6 +21,8 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fragmentShader.glsl ${CMAKE_CURRENT_B
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/woodTexture.jpg ${CMAKE_CURRENT_BINARY_DIR}/woodTexture.jpg COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/steelTexture.jpg ${CMAKE_CURRENT_BINARY_DIR}/steelTexture.jpg COPYONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/catTexture.jpg ${CMAKE_CURRENT_BINARY_DIR}/catTexture.jpg COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pandaTexture.jpg ${CMAKE_CURRENT_BINARY_DIR}/pandaTexture.jpg COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/fluidColouredTexture.jpg ${CMAKE_CURRENT_BINARY_DIR}/fluidColouredTexture.jpg COPYONLY)
 
 
 file(GLOB SOURCES "*.cpp" ${DEPENDENCY_DIR}/include/glad/glad/glad.c )
