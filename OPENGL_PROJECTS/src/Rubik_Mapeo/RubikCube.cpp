@@ -1,5 +1,113 @@
 #include "RubikCube.h"
 
+
+void generateTranslatedCubeVertices(glm::vec3 v, std::vector<glm::vec2> texCoords[])
+{
+	for (int i = 0, j = 0; i < sizeof(cube_vertices) / sizeof(GLfloat); i += 3, j = (j + 1) % 4) 
+	{
+		glm::vec3 temp = v + glm::vec3(cube_vertices[i], cube_vertices[i + 1], cube_vertices[i + 2]);
+		RubikVertices.insert(RubikVertices.end(), { temp.x, temp.y, temp.z });
+		switch (i)
+		{
+		case 0:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[UP_FACE][j].x, texCoords[UP_FACE][j].y });
+			break;
+		case 4*3:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[LEFT_FACE][j].x, texCoords[LEFT_FACE][j].y });
+			break;
+		case 8*3:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[FRONT_FACE][j].x, texCoords[FRONT_FACE][j].y });
+			break;
+		case 12*3:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[RIGHT_FACE][j].x, texCoords[RIGHT_FACE][j].y });
+			break;
+		case 16*3:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[BACK_FACE][j].x, texCoords[BACK_FACE][j].y });
+			break;
+		case 20*3:
+			RubikVertices.insert(RubikVertices.end(), { texCoords[DOWN_FACE][j].x, texCoords[DOWN_FACE][j].y });
+			break;
+		}
+	}
+}
+
+void generateWholeRubikCubeVertices() {
+	// primer nivel
+	// cubo 0
+	std::vector<glm::vec2> texCoords[6];
+	texCoords[UP_FACE].assign({ glm::vec2(0, 1), glm::vec2(0.333, 1), glm::vec2(0, 0.666), glm::vec2(0.333, 0.666) });
+	texCoords[LEFT_FACE].assign({ glm::vec2(0, 1), glm::vec2(0.333, 1), glm::vec2(0, 0.666), glm::vec2(0.333, 0.666) });
+	texCoords[FRONT_FACE].assign({ glm::vec2(0), glm::vec2(0), glm::vec2(0), glm::vec2(0) });
+	texCoords[RIGHT_FACE].assign({ glm::vec2(0), glm::vec2(0), glm::vec2(0), glm::vec2(0) });
+	texCoords[BACK_FACE].assign({ glm::vec2(0.666, 1), glm::vec2(0.333, 1), glm::vec2(0, 0.666), glm::vec2(0.333, 0.666) });
+	texCoords[DOWN_FACE].assign({ glm::vec2(0), glm::vec2(0), glm::vec2(0), glm::vec2(0) });
+	generateTranslatedCubeVertices(glm::vec3(-1, 1, -1), texCoords);
+	// posiciones
+	cubes[0].pos = glm::vec3(-1, 1, -1);
+
+	cubes[1].pos = glm::vec3(0, 1, -1);
+	cubes[2].pos = glm::vec3(1, 1, -1);
+	cubes[3].pos = glm::vec3(-1, 1, 0);
+	cubes[4].pos = glm::vec3(0, 1, 0);
+	cubes[5].pos = glm::vec3(1, 1, 0);
+	cubes[6].pos = glm::vec3(-1, 1, 1);
+	cubes[7].pos = glm::vec3(0, 1, 1);
+	cubes[8].pos = glm::vec3(1, 1, 1);
+	// colores negros L se interpreta como el color negro
+	cubes[0].colors[2] = 'L', cubes[0].colors[3] = 'L', cubes[0].colors[5] = 'L';
+	cubes[1].colors[1] = 'L', cubes[1].colors[2] = 'L', cubes[1].colors[3] = 'L', cubes[1].colors[5] = 'L';
+	cubes[2].colors[1] = 'L', cubes[2].colors[2] = 'L', cubes[2].colors[5] = 'L';
+	cubes[3].colors[2] = 'L', cubes[3].colors[3] = 'L', cubes[3].colors[4] = 'L', cubes[3].colors[5] = 'L';
+	cubes[4].colors[1] = 'L', cubes[4].colors[2] = 'L', cubes[4].colors[3] = 'L', cubes[4].colors[4] = 'L', cubes[4].colors[5] = 'L';
+	cubes[5].colors[1] = 'L', cubes[5].colors[2] = 'L', cubes[5].colors[4] = 'L', cubes[5].colors[5] = 'L';
+	cubes[6].colors[3] = 'L', cubes[6].colors[4] = 'L', cubes[6].colors[5] = 'L';
+	cubes[7].colors[1] = 'L', cubes[7].colors[3] = 'L', cubes[7].colors[4] = 'L', cubes[7].colors[5] = 'L';
+	cubes[8].colors[1] = 'L', cubes[8].colors[4] = 'L', cubes[8].colors[5] = 'L';
+
+	// segundo nivel
+	// posiciones
+	cubes[9].pos = glm::vec3(-1, 0, -1);
+	cubes[10].pos = glm::vec3(0, 0, -1);
+	cubes[11].pos = glm::vec3(1, 0, -1);
+	cubes[12].pos = glm::vec3(-1, 0, 0);
+	// cubes[13].model = glm::vec3(0, 0, 0); omitimos el 13, porque es el centro y no lo necesitamos
+	cubes[14].pos = glm::vec3(1, 0, 0);
+	cubes[15].pos = glm::vec3(-1, 0, 1);
+	cubes[16].pos = glm::vec3(0, 0, 1);
+	cubes[17].pos = glm::vec3(1, 0, 1);
+	// colores
+	cubes[9].colors[0] = 'L', cubes[9].colors[2] = 'L', cubes[9].colors[3] = 'L', cubes[9].colors[5] = 'L';
+	cubes[10].colors[0] = 'L', cubes[10].colors[1] = 'L', cubes[10].colors[2] = 'L', cubes[10].colors[3] = 'L', cubes[10].colors[5] = 'L';
+	cubes[11].colors[0] = 'L', cubes[11].colors[1] = 'L', cubes[11].colors[2] = 'L', cubes[11].colors[5] = 'L';
+	cubes[12].colors[0] = 'L', cubes[12].colors[2] = 'L', cubes[12].colors[3] = 'L', cubes[12].colors[4] = 'L', cubes[12].colors[5] = 'L';
+	cubes[14].colors[0] = 'L', cubes[14].colors[1] = 'L', cubes[14].colors[2] = 'L', cubes[14].colors[4] = 'L', cubes[14].colors[5] = 'L';
+	cubes[15].colors[0] = 'L', cubes[15].colors[3] = 'L', cubes[15].colors[4] = 'L', cubes[15].colors[5] = 'L';
+	cubes[16].colors[0] = 'L', cubes[16].colors[1] = 'L', cubes[16].colors[3] = 'L', cubes[16].colors[4] = 'L', cubes[16].colors[5] = 'L';
+	cubes[17].colors[0] = 'L', cubes[17].colors[1] = 'L', cubes[17].colors[4] = 'L', cubes[17].colors[5] = 'L';
+
+	// tercer nivel
+	// posiciones
+	cubes[18].pos = glm::vec3(-1, -1, -1);
+	cubes[19].pos = glm::vec3(0, -1, -1);
+	cubes[20].pos = glm::vec3(1, -1, -1);
+	cubes[21].pos = glm::vec3(-1, -1, 0);
+	cubes[22].pos = glm::vec3(0, -1, 0);
+	cubes[23].pos = glm::vec3(1, -1, 0);
+	cubes[24].pos = glm::vec3(-1, -1, 1);
+	cubes[25].pos = glm::vec3(0, -1, 1);
+	cubes[26].pos = glm::vec3(1, -1, 1);
+	// colores
+	cubes[18].colors[0] = 'L', cubes[18].colors[2] = 'L', cubes[18].colors[3] = 'L';
+	cubes[19].colors[0] = 'L', cubes[19].colors[1] = 'L', cubes[19].colors[2] = 'L', cubes[19].colors[3] = 'L';
+	cubes[20].colors[0] = 'L', cubes[20].colors[1] = 'L', cubes[20].colors[2] = 'L';
+	cubes[21].colors[0] = 'L', cubes[21].colors[2] = 'L', cubes[21].colors[3] = 'L', cubes[21].colors[4] = 'L';
+	cubes[22].colors[0] = 'L', cubes[22].colors[1] = 'L', cubes[22].colors[2] = 'L', cubes[22].colors[3] = 'L', cubes[22].colors[4] = 'L';
+	cubes[23].colors[0] = 'L', cubes[23].colors[1] = 'L', cubes[23].colors[2] = 'L', cubes[23].colors[4] = 'L';
+	cubes[24].colors[0] = 'L', cubes[24].colors[3] = 'L', cubes[24].colors[4] = 'L';
+	cubes[25].colors[0] = 'L', cubes[25].colors[1] = 'L', cubes[25].colors[3] = 'L', cubes[25].colors[4] = 'L';
+	cubes[26].colors[0] = 'L', cubes[26].colors[1] = 'L', cubes[26].colors[4] = 'L';
+}
+
 void Cube::chooseColor(const Shader& program, GLint i)
 {
 	switch (colors[i])
@@ -17,7 +125,7 @@ void Cube::chooseColor(const Shader& program, GLint i)
 		program.setVec3("changingColor", 1.0f, 0.0f, 0.0f);
 		break;
 	case 'B': // blue color
-		program.setVec3("changingColor", 0.031f, 0.231f, 0.968f);
+		program.setVec3("changingColor", 0.043f, 0.121f, 0.737f);
 		break;
 	case 'Y': // yellow color
 		program.setVec3("changingColor", 0.933f, 0.952f, 0.086f);
@@ -348,7 +456,7 @@ void RubikCube3x3::DrawCube(glm::mat4& view, glm::mat4& projection)
 }
 void RubikCube3x3::HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& move_state, FLUENT_ANIMATION& animation)
 {
-	static float turbo = 0.70f;
+	static float turbo = 0.75f;
 	float parts = 90.0f * (1.0f - turbo);
 
 	switch (move_state)

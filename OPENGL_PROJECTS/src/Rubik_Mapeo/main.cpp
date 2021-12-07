@@ -33,8 +33,8 @@ void manual() {
     std::cout << "PAD 3: Cara Derecha (right) sentido antihorario\n";
     std::cout << "PAD 4: Cara Superior (up) sentido horario\n";
     std::cout << "PAD 5: Cara Superior (up) sentido antihorario\n";
-    std::cout << "PAD 6: Cara Detras (back) sentido horario\n";
-    std::cout << "PAD 7: Cara Detras (back) sentido antihorario\n";
+    std::cout << "PAD 6: Cara Trasera (back) sentido horario\n";
+    std::cout << "PAD 7: Cara Trasera (back) sentido antihorario\n";
     std::cout << "PAD 8: Cara Izquierda (left) sentido horario\n";
     std::cout << "PAD 9: Cara Izquierda (left) sentido antihorario\n";
     std::cout << "PAD +: Cara Abajo (down) sentido horario\n";
@@ -42,7 +42,7 @@ void manual() {
     std::cout << "SPACE: RESOLVER CUBO\n";
 
     std::cout << "COMANDOS PARA LAS ANIMACIONES\n";
-    std::cout << "B/b: Respiracion (Breathe) constante\n";
+    std::cout << "B/b: Respiración (Breathe) constante\n";
     std::cout << "V/v: Detener respiración (Static)\n";
 
     std::cout << "COMANDOS PARA LAS PROYECCIONES\n";
@@ -247,16 +247,16 @@ int main()
         rubik.HandleDrawing(view, projection, animation_state, fluent_animation);
 
         // Ahora configuramos las matrices para la luz
-        //LightProgram.use();
-        //LightProgram.setMat4("view", view);
-        //LightProgram.setMat4("projection", projection);
-        //glm::mat4 lightmodel(1.0f);
-        //glm::vec3 lightPos(3.0f, 3.0f, 0.0f);
-        //lightmodel = glm::translate(lightmodel, lightPos);
-        //lightmodel = glm::scale(lightmodel, glm::vec3(0.2f)); // un cubo pequeño
-        //LightProgram.setMat4("model", lightmodel);
-        //glBindVertexArray(lightVAO);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        LightProgram.use();
+        LightProgram.setMat4("view", view);
+        LightProgram.setMat4("projection", projection);
+        glm::mat4 lightmodel(1.0f);
+        glm::vec3 lightPos(3.0f, 3.0f, 0.0f);
+        lightmodel = glm::translate(lightmodel, lightPos);
+        lightmodel = glm::scale(lightmodel, glm::vec3(0.2f)); // un cubo pequeño
+        LightProgram.setMat4("model", lightmodel);
+        glBindVertexArray(lightVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

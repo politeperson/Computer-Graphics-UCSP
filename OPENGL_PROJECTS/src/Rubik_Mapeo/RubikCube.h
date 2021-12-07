@@ -22,47 +22,93 @@
 
 #include "defineRubik.h"
 
+#define UP_FACE 0
+#define LEFT_FACE 1
+#define FRONT_FACE 2
+#define RIGHT_FACE 3
+#define BACK_FACE 4
+#define DOWN_FACE 5
+
 // usa 26 shaders para cada cubo
-static GLfloat cube_fill_vertices[] =
+static GLfloat cube_vertices[] =
 {
 	// extra black color for drawing borders
 	// UP face - white color
-	-0.5f,  0.5f, -0.5f, /*1.0f, 1.0f, 1.0f,*/ 0.0f, 1.0f, // 0 - 0
-	 0.5f,  0.5f, -0.5f, /*1.0f, 1.0f, 1.0f,*/ 1.0f, 1.0f,// 1 - 1
-	-0.5f,  0.5f,  0.5f, /*1.0f, 1.0f, 1.0f,*/ 0.0f, 0.0f,// 2 - 2
-	 0.5f,  0.5f,  0.5f, /*1.0f, 1.0f, 1.0f,*/ 1.0f, 0.0f,// 3 - 3
+	-0.5f,  0.5f, -0.5f,  // 0 - 0
+	 0.5f,  0.5f, -0.5f, // 1 - 1
+	-0.5f,  0.5f,  0.5f, // 2 - 2
+	 0.5f,  0.5f,  0.5f, // 3 - 3
 
 	// LEFT face - orange color
-	-0.5f,  0.5f, -0.5f, /*0.972f, 0.470f, 0.227f,*/ 0.0f, 1.0f,// 4 - 0
-	-0.5f,  0.5f,  0.5f, /*0.972f, 0.470f, 0.227f,*/ 1.0f, 1.0f,// 5 - 2
-	-0.5f, -0.5f, -0.5f, /*0.972f, 0.470f, 0.227f,*/ 0.0f, 0.0f,// 6 - 4
-	-0.5f, -0.5f,  0.5f, /*0.972f, 0.470f, 0.227f,*/ 1.0f, 0.0f,// 7 - 5
+	-0.5f,  0.5f, -0.5f, // 4 - 0
+	-0.5f,  0.5f,  0.5f, // 5 - 2
+	-0.5f, -0.5f, -0.5f, // 6 - 4
+	-0.5f, -0.5f,  0.5f, // 7 - 5
 
 	// FRONT face - green color
-	-0.5f,  0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 0.0f, 1.0f,// 8 - 2
-	 0.5f,  0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 1.0f, 1.0f,// 9 - 3
-	-0.5f, -0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 0.0f, 0.0f,// 10 - 5
-	 0.5f, -0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 1.0f, 0.0f,// 11 - 6
+	-0.5f,  0.5f,  0.5f,// 8 - 2
+	 0.5f,  0.5f,  0.5f,// 9 - 3
+	-0.5f, -0.5f,  0.5f,// 10 - 5
+	 0.5f, -0.5f,  0.5f,// 11 - 6
 
 	// RIGHT face - red color
-	 0.5f,  0.5f,  0.5f, /*1.0f, 0.0f, 0.0f,*/ 0.0f, 1.0f,// 12 - 3
-	 0.5f,  0.5f, -0.5f, /*1.0f, 0.0f, 0.0f,*/ 1.0f, 1.0f,// 13 - 1
-	 0.5f, -0.5f,  0.5f, /*1.0f, 0.0f, 0.0f,*/ 0.0f, 0.0f,// 14 - 6
-	 0.5f, -0.5f, -0.5f, /*1.0f, 0.0f, 0.0f,*/ 1.0f, 0.0f,// 15 - 7
+	 0.5f,  0.5f,  0.5f,// 12 - 3
+	 0.5f,  0.5f, -0.5f,// 13 - 1
+	 0.5f, -0.5f,  0.5f,// 14 - 6
+	 0.5f, -0.5f, -0.5f,// 15 - 7
 
 	// BACK face - blue color
-	-0.5f,  0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 1.0f, 1.0f,// 16 - 0
-	 0.5f,  0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 0.0f, 1.0f,// 17 - 1
-	-0.5f, -0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 1.0f, 0.0f,// 18 - 4
-	 0.5f, -0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 0.0f, 0.0f,// 19 - 7
+	-0.5f,  0.5f, -0.5f,// 16 - 0
+	 0.5f,  0.5f, -0.5f,// 17 - 1
+	-0.5f, -0.5f, -0.5f,// 18 - 4
+	 0.5f, -0.5f, -0.5f,// 19 - 7
 
 	// DOWN face - yellow color
-	-0.5f, -0.5f, -0.5f, /*1.0f, 1.0f, 0.0f,*/ 0.0f, 1.0f,// 20 - 4
-	 0.5f, -0.5f, -0.5f, /*1.0f, 1.0f, 0.0f,*/ 1.0f, 1.0f,// 21 - 7
-	-0.5f, -0.5f,  0.5f, /*1.0f, 1.0f, 0.0f,*/ 0.0f, 0.0f,// 22 - 5
-	 0.5f, -0.5f,  0.5f, /*1.0f, 1.0f, 0.0f,*/ 1.0f, 0.0f // 23 - 6
+	-0.5f, -0.5f, -0.5f,// 20 - 4
+	 0.5f, -0.5f, -0.5f,// 21 - 7
+	-0.5f, -0.5f,  0.5f,// 22 - 5
+	 0.5f, -0.5f,  0.5f// 23 - 6
 };
 
+//static GLfloat cube_fill_vertices[] =
+//{
+//	// extra black color for drawing borders
+//	// UP face - white color
+//	-0.5f,  0.5f, -0.5f, /*1.0f, 1.0f, 1.0f,*/ 0.0f, 1.0f, // 0 - 0
+//	 0.5f,  0.5f, -0.5f, /*1.0f, 1.0f, 1.0f,*/ 1.0f, 1.0f,// 1 - 1
+//	-0.5f,  0.5f,  0.5f, /*1.0f, 1.0f, 1.0f,*/ 0.0f, 0.0f,// 2 - 2
+//	 0.5f,  0.5f,  0.5f, /*1.0f, 1.0f, 1.0f,*/ 1.0f, 0.0f,// 3 - 3
+//
+//	// LEFT face - orange color
+//	-0.5f,  0.5f, -0.5f, /*0.972f, 0.470f, 0.227f,*/ 0.0f, 1.0f,// 4 - 0
+//	-0.5f,  0.5f,  0.5f, /*0.972f, 0.470f, 0.227f,*/ 1.0f, 1.0f,// 5 - 2
+//	-0.5f, -0.5f, -0.5f, /*0.972f, 0.470f, 0.227f,*/ 0.0f, 0.0f,// 6 - 4
+//	-0.5f, -0.5f,  0.5f, /*0.972f, 0.470f, 0.227f,*/ 1.0f, 0.0f,// 7 - 5
+//
+//	// FRONT face - green color
+//	-0.5f,  0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 0.0f, 1.0f,// 8 - 2
+//	 0.5f,  0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 1.0f, 1.0f,// 9 - 3
+//	-0.5f, -0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 0.0f, 0.0f,// 10 - 5
+//	 0.5f, -0.5f,  0.5f, /*0.0f, 1.0f, 0.0f,*/ 1.0f, 0.0f,// 11 - 6
+//
+//	// RIGHT face - red color
+//	 0.5f,  0.5f,  0.5f, /*1.0f, 0.0f, 0.0f,*/ 0.0f, 1.0f,// 12 - 3
+//	 0.5f,  0.5f, -0.5f, /*1.0f, 0.0f, 0.0f,*/ 1.0f, 1.0f,// 13 - 1
+//	 0.5f, -0.5f,  0.5f, /*1.0f, 0.0f, 0.0f,*/ 0.0f, 0.0f,// 14 - 6
+//	 0.5f, -0.5f, -0.5f, /*1.0f, 0.0f, 0.0f,*/ 1.0f, 0.0f,// 15 - 7
+//
+//	// BACK face - blue color
+//	-0.5f,  0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 1.0f, 1.0f,// 16 - 0
+//	 0.5f,  0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 0.0f, 1.0f,// 17 - 1
+//	-0.5f, -0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 1.0f, 0.0f,// 18 - 4
+//	 0.5f, -0.5f, -0.5f, /*0.0f, 0.0f, 1.0f,*/ 0.0f, 0.0f,// 19 - 7
+//
+//	// DOWN face - yellow color
+//	-0.5f, -0.5f, -0.5f, /*1.0f, 1.0f, 0.0f,*/ 0.0f, 1.0f,// 20 - 4
+//	 0.5f, -0.5f, -0.5f, /*1.0f, 1.0f, 0.0f,*/ 1.0f, 1.0f,// 21 - 7
+//	-0.5f, -0.5f,  0.5f, /*1.0f, 1.0f, 0.0f,*/ 0.0f, 0.0f,// 22 - 5
+//	 0.5f, -0.5f,  0.5f, /*1.0f, 1.0f, 0.0f,*/ 1.0f, 0.0f // 23 - 6
+//};
 
 
 static GLuint cube_indices[] =
@@ -130,7 +176,10 @@ static GLuint cube_indices[] =
 
 };
 
+std::vector<float> RubikVertices;
 
+void generateTranslatedCubeVertices(glm::vec3 v, glm::vec2 texCoords[][4]);
+void generateWholeRubikCubeVertices();
 
 class Cube
 {
@@ -203,6 +252,7 @@ public:
 	void DrawCube(glm::mat4& view, glm::mat4& projection);
 	void HandleDrawing(glm::mat4& view, glm::mat4& projection, STATE_ANIMATION& move_state, FLUENT_ANIMATION& animation);
 	void Solve(STATE_ANIMATION& some_state);
+	void DisorderCube();
 
 	// MOVIMIENTOS DEL CUBO
 	//// rota el FRONT del cubo en sentido horario
